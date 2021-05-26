@@ -178,7 +178,7 @@ func Gql__type_{{ .TypeName }}() *graphql.Object {
 func Gql__input_{{ .TypeName }}() *graphql.InputObject {
 	if gql__input_{{ .TypeName }} == nil {
 		gql__input_{{ .TypeName }} =  graphql.NewInputObject(graphql.InputObjectConfig{
-			Name: "{{ .TypeName }}",
+			Name: "{{ .TypeName }}Input",
 			Fields: graphql.InputObjectConfigFieldMap{
 {{- range .Fields }}
 				"{{ .FieldName }}": &graphql.InputObjectFieldConfig{
