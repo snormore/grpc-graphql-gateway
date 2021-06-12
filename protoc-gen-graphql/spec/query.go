@@ -38,7 +38,11 @@ func (q *Query) IsCamel() bool {
 }
 
 func (q *Query) QueryName() string {
-	return q.Schema.GetName()
+	name := q.Schema.GetName()
+	if name == "" {
+		name = q.Name()
+	}
+	return name
 }
 
 func (q *Query) Request() *graphql.GraphqlRequest {

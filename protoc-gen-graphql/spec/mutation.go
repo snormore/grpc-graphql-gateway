@@ -30,7 +30,11 @@ func (m *Mutation) IsCamel() bool {
 }
 
 func (m *Mutation) MutationName() string {
-	return m.Schema.GetName()
+	name := m.Schema.GetName()
+	if name == "" {
+		name = m.Name()
+	}
+	return name
 }
 
 func (m *Mutation) Request() *graphql.GraphqlRequest {
