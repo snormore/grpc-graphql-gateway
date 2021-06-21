@@ -248,6 +248,7 @@ func (f *Field) GraphqlGoType(rootPackage string, isInput bool) string {
 			return PrefixInterface(strings.ReplaceAll(tn, ".", "_"))
 		}
 		var pkgPrefix string
+		pkg := NewPackage(m)
 		if IsGooglePackage(m) {
 			// Case google.protobuf.XXX
 			ptypeName, err := getImplementedPtypes(m)
@@ -255,6 +256,13 @@ func (f *Field) GraphqlGoType(rootPackage string, isInput bool) string {
 				log.Fatalln("[PROTOC-GEN-GRAPHQL] Error:", err)
 			}
 			pkgPrefix = "gql_ptypes_" + ptypeName + "."
+		} else if rootPackage != "." {
+			// Case message is nested, also includes map_entry
+			if pkg.Name != rootPackage {
+				if !IsGooglePackage(m) {
+					pkgPrefix = pkg.Name + "."
+				}
+			}
 		}
 		if isInput {
 			return pkgPrefix + PrefixInput(strings.ReplaceAll(tn, ".", "_"))
@@ -262,8 +270,15 @@ func (f *Field) GraphqlGoType(rootPackage string, isInput bool) string {
 		return pkgPrefix + PrefixType(strings.ReplaceAll(tn, ".", "_"))
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		e := f.DependType.(*Enum) // nolint: errcheck
+		var pkgPrefix string
+		pkg := NewPackage(e)
+		if pkg.Name != rootPackage {
+			if !IsGooglePackage(e) {
+				pkgPrefix = pkg.Name + "."
+			}
+		}
 		tn := strings.TrimPrefix(f.TypeName(), e.Package()+".")
-		return PrefixEnum(strings.ReplaceAll(tn, ".", "_"))
+		return pkgPrefix + PrefixEnum(strings.ReplaceAll(tn, ".", "_"))
 	default:
 		return "graphql.SkipDirective"
 	}
