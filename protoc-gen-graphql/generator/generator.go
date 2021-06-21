@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 
 	"go/format"
 	"io/ioutil"
@@ -242,8 +244,10 @@ func (g *Generator) generateFile(file *spec.File, tmpl string, services []*spec.
 		return nil, err
 	}
 
+	fileName := filepath.Base(file.Filename())
+	fileName = strings.TrimSuffix(fileName, filepath.Ext(fileName))
 	return &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(fmt.Sprintf("%s/%s.graphql.go", root.Path, root.Name)),
+		Name:    proto.String(fmt.Sprintf("%s/%s_graphql.pb.go", root.Path, fileName)),
 		Content: proto.String(string(out)),
 	}, nil
 }
