@@ -68,7 +68,7 @@ func Gql__interface_{{ .TypeName }}() *graphql.Interface {
 {{- range .Fields }}
 			{{- if not .IsCyclic }}
 				"{{ .FieldName }}": &graphql.Field{
-					Type: {{ .FieldType $.RootPackage.Path }},
+					Type: {{ .FieldType $.RootPackage.String }},
 					{{- if .Comment }}
 					Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 					{{- end }}
@@ -106,7 +106,7 @@ func Gql__type_{{ .TypeName }}() *graphql.Object {
 						Args: graphql.FieldConfigArgument{
 						{{- range $query.Args }}
 							"{{ .FieldName }}": &graphql.ArgumentConfig{
-								Type: {{ .FieldTypeInput $.RootPackage.Path }},
+								Type: {{ .FieldTypeInput $.RootPackage.String }},
 								{{- if .Comment }}
 								Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 								{{- end }}
@@ -152,7 +152,7 @@ func Gql__type_{{ .TypeName }}() *graphql.Object {
 				},
 				{{- else }}
 				"{{ .FieldName }}": &graphql.Field{
-					Type: {{ .FieldType $.RootPackage.Path }},
+					Type: {{ .FieldType $.RootPackage.String }},
 					{{- if .Comment }}
 					Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 					{{- end }}
@@ -185,7 +185,7 @@ func Gql__input_{{ .TypeName }}() *graphql.InputObject {
 					{{- if .Comment }}
 					Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 					{{- end }}
-					Type: {{ .FieldTypeInput $.RootPackage.Path }},
+					Type: {{ .FieldTypeInput $.RootPackage.String }},
 				},
 {{- end }}
 			},
@@ -225,6 +225,14 @@ func new_graphql_resolver_{{ $service.Name }}(conn *grpc.ClientConn) *graphql__r
 	}
 }
 
+// New{{ $service.Name }}GraphqlResolver returns a pointer of the resolver struct.
+func New{{ $service.Name }}GraphqlResolver(host string, dialOptions []grpc.DialOption) *graphql__resolver_{{ $service.Name }} {
+	return &graphql__resolver_{{ $service.Name }}{
+		host: host,
+		dialOptions: dialOptions,
+	}
+}
+
 // CreateConnection() returns grpc connection which user specified or newly connected and closing function
 func (x *graphql__resolver_{{ $service.Name }}) CreateConnection(ctx context.Context) (*grpc.ClientConn, func(), error) {
 	// If x.conn is not nil, user injected their own connection
@@ -253,7 +261,7 @@ func (x *graphql__resolver_{{ $service.Name }}) GetQueries(conn *grpc.ClientConn
 			Args: graphql.FieldConfigArgument{
 			{{- range .Args }}
 				"{{ .FieldName }}": &graphql.ArgumentConfig{
-					Type: {{ .FieldTypeInput $.RootPackage.Path }},
+					Type: {{ .FieldTypeInput $.RootPackage.String }},
 					{{- if .Comment }}
 					Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 					{{- end }}
@@ -310,7 +318,7 @@ func (x *graphql__resolver_{{ $service.Name }}) GetMutations(conn *grpc.ClientCo
 			{{- else }}
 			{{- range .Args }}
 				"{{ .FieldName }}": &graphql.ArgumentConfig{
-					Type: {{ .FieldTypeInput $.RootPackage.Path }},
+					Type: {{ .FieldTypeInput $.RootPackage.String }},
 					{{- if .Comment }}
 					Description: ` + "`" + `{{ .Comment }}` + "`" + `,
 					{{- end }}

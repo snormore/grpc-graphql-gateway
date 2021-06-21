@@ -21,6 +21,7 @@ type Package struct {
 	Name      string
 	CamelName string
 	Path      string
+	String    string
 }
 
 func NewPackage(g PackageGetter) *Package {
@@ -34,14 +35,17 @@ func NewPackage(g PackageGetter) *Package {
 			p.Name = filepath.Base(pkg)
 			p.Path = pkg
 		}
+		p.String = pkg
 	} else if pkg := g.Package(); pkg != "" {
 		p.Name = pkg
+		p.String = pkg
 	} else {
 		p.Name = strings.ReplaceAll(
 			g.Filename(),
 			filepath.Ext(g.Filename()),
 			"",
 		)
+		p.String = p.Name
 	}
 
 	p.CamelName = strcase.ToCamel(p.Name)
@@ -52,6 +56,7 @@ func NewGooglePackage(m PackageGetter) *Package {
 	name := filepath.Base(m.GoPackage())
 
 	return &Package{
+		String:    strings.ToLower(name),
 		Name:      "gql_ptypes_" + strings.ToLower(name),
 		CamelName: strcase.ToCamel(name),
 		Path:      "github.com/ysugimoto/grpc-graphql-gateway/ptypes/" + strings.ToLower(name),
@@ -59,7 +64,9 @@ func NewGooglePackage(m PackageGetter) *Package {
 }
 
 func NewGoPackageFromString(pkg string) *Package {
-	p := &Package{}
+	p := &Package{
+		String: pkg,
+	}
 	// Support custom package definitions like example.com/path/to/package:packageName
 	if index := strings.Index(pkg, ";"); index > -1 {
 		p.Name = pkg[index+1:]
