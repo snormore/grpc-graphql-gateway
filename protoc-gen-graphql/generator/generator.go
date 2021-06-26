@@ -278,7 +278,7 @@ func (g *Generator) analyzeMessage(file *spec.File) error {
 		}
 		m.Depend(spec.DependTypeMessage, file.Package())
 		m.Depend(spec.DependTypeInput, file.Package())
-		if err := g.analyzeFields(file.Package(), m, m.Fields(), false, false); err != nil {
+		if err := g.analyzeFields(file.Package(), m, map[string]bool{}, m.Fields(), false, false); err != nil {
 			return err
 		}
 	}
@@ -349,12 +349,12 @@ func (g *Generator) analyzeService(f *spec.File, s *spec.Service) error {
 func (g *Generator) analyzeQuery(f *spec.File, q *spec.Query) error {
 	g.logger.Write("package %s depends on query request %s", f.Package(), q.Input.FullPath())
 	q.Input.Depend(spec.DependTypeMessage, f.Package())
-	if err := g.analyzeFields(f.Package(), q.Input, q.PluckRequest(), false, false); err != nil {
+	if err := g.analyzeFields(f.Package(), q.Input, map[string]bool{f.Package() + "." + q.Input.TypeName(): true}, q.PluckRequest(), false, false); err != nil {
 		return err
 	}
 
 	q.Output.Depend(spec.DependTypeMessage, f.Package())
-	if err := g.analyzeFields(f.Package(), q.Output, q.PluckResponse(), false, false); err != nil {
+	if err := g.analyzeFields(f.Package(), q.Output, map[string]bool{f.Package() + "." + q.Output.TypeName(): true}, q.PluckResponse(), false, false); err != nil {
 		return err
 	}
 	return nil
@@ -364,11 +364,11 @@ func (g *Generator) analyzeQuery(f *spec.File, q *spec.Query) error {
 func (g *Generator) analyzeMutation(f *spec.File, m *spec.Mutation) error {
 	g.logger.Write("package %s depends on mutation request %s", f.Package(), m.Input.FullPath())
 	m.Input.Depend(spec.DependTypeInput, f.Package())
-	if err := g.analyzeFields(f.Package(), m.Input, m.PluckRequest(), true, false); err != nil {
+	if err := g.analyzeFields(f.Package(), m.Input, map[string]bool{f.Package() + "." + m.Input.TypeName(): true}, m.PluckRequest(), true, false); err != nil {
 		return err
 	}
 	m.Output.Depend(spec.DependTypeMessage, f.Package())
-	if err := g.analyzeFields(f.Package(), m.Output, m.PluckResponse(), false, false); err != nil {
+	if err := g.analyzeFields(f.Package(), m.Output, map[string]bool{f.Package() + "." + m.Output.TypeName(): true}, m.PluckResponse(), false, false); err != nil {
 		return err
 	}
 	return nil
@@ -377,6 +377,7 @@ func (g *Generator) analyzeMutation(f *spec.File, m *spec.Mutation) error {
 func (g *Generator) analyzeFields(
 	rootPkg string,
 	orig *spec.Message,
+	completed map[string]bool,
 	fields []*spec.Field,
 	asInput,
 	recursive bool,
@@ -408,8 +409,9 @@ func (g *Generator) analyzeFields(
 			}
 
 			// Guard from recursive with infinite loop
-			if m != orig {
-				if err := g.analyzeFields(rootPkg, m, m.Fields(), asInput, true); err != nil {
+			if !completed[rootPkg+"."+m.TypeName()] {
+				completed[rootPkg+"."+m.TypeName()] = true
+				if err := g.analyzeFields(rootPkg, m, completed, m.Fields(), asInput, true); err != nil {
 					return err
 				}
 			}
